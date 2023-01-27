@@ -1,0 +1,1044 @@
+---
+title: "DASL"
+author: "Asad Aslam"
+date: "2022-12-10"
+output: html_document
+---
+
+```{r}
+vehicle = read.csv(file='Electric_Vehicles.csv')
+```
+
+```{r}
+str(vehicle)
+```
+
+```{r}
+head(vehicle)
+```
+
+```{r}
+tail(vehicle)
+```
+
+```{r}
+summary(vehicle)
+```
+
+```{r}
+
+vehicle$Brand <- as.factor(vehicle$Brand)
+summary(vehicle$Brand)
+```
+
+```{r}
+library(ggplot2)
+library(ggcorrplot)
+```
+
+```{r}
+Brand_Hist <-  ggplot(vehicle, aes(x=Brand, fill=Brand)) +
+  theme_bw() +
+  geom_bar() +
+  ylim(0, 15) +
+  labs(title = "Brand") +
+  scale_x_discrete()
+Brand_Hist
+```
+
+```{r}
+summary(vehicle$Model)
+
+```
+
+```{r}
+summary(vehicle$AccelSec)
+
+```
+
+```{r}
+sd(vehicle$AccelSec)
+
+```
+
+```{r}
+var(vehicle$AccelSec)
+
+```
+
+```{r}
+(quantile(vehicle$AccelSec,0.75)) - (quantile(vehicle$AccelSec,0.25))
+```
+
+```{r}
+
+library(moments)
+```
+
+```{r}
+hist(vehicle$AccelSec, freq=FALSE, main = "Histogram of AccelSec", xlab = "
+AccelSec")
+lines(density(vehicle$AccelSec), col="red")
+```
+
+```{r}
+skewness(vehicle$AccelSec)
+```
+
+```{r}
+kurtosis(vehicle$AccelSec)
+?kurtosis()
+```
+
+```{r}
+#install.packages("gamlss")
+#install.packages("gamlss.mx")
+library(gamlss)
+library(gamlss.mx) 
+```
+
+```{r}
+par(mfrow=c(1,2))
+fit.gamma <- histDist(vehicle$AccelSec, family=GA, nbins=30, main="Gamma distribution")
+fit.EXP <- histDist(vehicle$AccelSec, family=EXP, nbins=30, main="Exponential distribution")
+fit.LOGNO <- histDist(vehicle$AccelSec, family=LOGNO, nbins=30, main="Log-Normal distribution")
+fit.WEI <- histDist(vehicle$AccelSec, family=WEI, nbins=30, main="Weibull distribution")
+fit.IG <- histDist(vehicle$AccelSec, family=IG, nbins=30, main="Inverse Gaussian distribution")
+
+
+```
+
+```{r}
+data.frame(row.names=c("Gamma", "Exponentional", "Log-Normal", "Weibull","Inverse Gaussian"),
+ DF=c(fit.gamma$df.fit, fit.EXP$df.fit, fit.LOGNO$df.fit, fit.WEI$df.fit, fit.IG$df.fit),           
+ LOGLIK=c(logLik(fit.gamma),logLik(fit.EXP),logLik(fit.LOGNO),logLik(fit.WEI),logLik(fit.IG)),
+ AIC=c(AIC(fit.gamma), AIC(fit.EXP), AIC(fit.LOGNO),AIC(fit.WEI), AIC(fit.IG)),
+ BIC=c(fit.gamma$sbc, fit.EXP$sbc, fit.LOGNO$sbc, fit.WEI$sbc, fit.IG$sbc))
+
+
+```
+
+|     |
+|----:|
+|     |
+
+\
+
+```{r}
+boxplot(vehicle$AccelSec, main = "Boxplot of AccelSec Variable")
+points(mean(vehicle$AccelSec))
+```
+
+```{r}
+library(lmtest)
+lrtest(fit.WEI,fit.EXP)
+```
+
+```{r}
+?gamlss.family
+```
+
+```{r}
+par(mfrow=c(1,3))
+fit.GA.AcceSec <- gamlssMXfits(n = 2, vehicle$AccelSec~1, family = GA, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.EXP.AcceSec <- gamlssMXfits(n = 5, vehicle$AccelSec~1, family = EXP, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.LOGNO.AcceSec <- gamlssMXfits(n = 5, vehicle$AccelSec~1, family = LOGNO, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.WEI.AcceSec <- gamlssMXfits(n = 5, vehicle$AccelSec~1, family = WEI, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.IG.AcceSec <- gamlssMXfits(n = 5, vehicle$AccelSec~1, family = IG, K = 2, data = vehicle)
+
+
+```
+
+```{r}
+data.frame(row.names=c("Gamma", "Exponentional", "Log-Normal", "Weibull","Inverse Gaussian","M.Gamma", "M.Exponentional", "M.Log-Normal", "M.Weibull","M.Inverse Gaussian"),
+
+ DF=c(fit.gamma$df.fit, fit.EXP$df.fit, fit.LOGNO$df.fit, fit.WEI$df.fit, fit.IG$df.fit, fit.GA.AcceSec$df.fit, fit.EXP.AcceSec$df.fit, fit.LOGNO.AcceSec$df.fit, fit.WEI.AcceSec$df.fit, fit.IG.AcceSec$df.fit),
+ 
+ LOGLIK=c(logLik(fit.gamma),logLik(fit.EXP),logLik(fit.LOGNO),logLik(fit.WEI),logLik(fit.IG),logLik(fit.GA.AcceSec),logLik(fit.EXP.AcceSec),logLik(fit.LOGNO.AcceSec),logLik(fit.WEI.AcceSec),logLik(fit.IG.AcceSec)),
+ 
+ AIC=c(AIC(fit.gamma), AIC(fit.EXP), AIC(fit.LOGNO),AIC(fit.WEI), AIC(fit.IG),AIC(fit.GA.AcceSec), AIC(fit.EXP.AcceSec), AIC(fit.LOGNO.AcceSec),AIC(fit.WEI.AcceSec), AIC(fit.IG.AcceSec)),
+ 
+ BIC=c(fit.gamma$sbc, fit.EXP$sbc, fit.LOGNO$sbc, fit.WEI$sbc, fit.IG$sbc,fit.GA.AcceSec$sbc, fit.EXP.AcceSec$sbc, fit.LOGNO.AcceSec$sbc, fit.WEI.AcceSec$sbc, fit.IG.AcceSec$sbc))
+```
+
+```{r}
+summary(vehicle$TopSpeed_KmH)
+
+```
+
+```{r}
+sd(vehicle$TopSpeed_KmH)
+
+```
+
+```{r}
+var(vehicle$TopSpeed_KmH)
+```
+
+```{r}
+
+(quantile(vehicle$AccelSec,0.75)) - (quantile(vehicle$AccelSec,0.25))
+```
+
+```{r}
+boxplot(vehicle$TopSpeed_KmH, main = "Boxplot of TopSpeed_KmH Variable")
+points(mean(vehicle$TopSpeed_KmH))
+```
+
+```{r}
+hist(vehicle$TopSpeed_KmH, freq=FALSE, main = "Histogram of TopSpeed_KmH", xlab = "
+TopSpeed_KmH")
+lines(density(vehicle$TopSpeed_KmH), col="red")
+```
+
+```{r}
+skewness(vehicle$TopSpeed_KmH)
+```
+
+```{r}
+kurtosis(vehicle$TopSpeed_KmH)
+```
+
+```{r}
+par(mfrow=c(1,2))
+fit.gamma <- histDist(vehicle$TopSpeed_KmH, family=GA, nbins=30, main="Gamma distribution")
+fit.EXP <- histDist(vehicle$TopSpeed_KmH, family=EXP, nbins=30, main="Exponential distribution")
+fit.LOGNO <- histDist(vehicle$TopSpeed_KmH, family=LOGNO, nbins=30, main="Log-Normal distribution")
+fit.WEI <- histDist(vehicle$TopSpeed_KmH, family=WEI, nbins=30, main="Weibull distribution")
+fit.IG <- histDist(vehicle$TopSpeed_KmH, family=IG, nbins=30, main="Inverse Gaussian distribution")
+```
+
+```{r}
+data.frame(row.names=c("Gamma", "Exponentional", "Log-Normal", "Weibull","Inverse Gaussian"),
+ DF=c(fit.gamma$df.fit, fit.EXP$df.fit, fit.LOGNO$df.fit, fit.WEI$df.fit, fit.IG$df.fit),           
+ LOGLIK=c(logLik(fit.gamma),logLik(fit.EXP),logLik(fit.LOGNO),logLik(fit.WEI),logLik(fit.IG)),
+ AIC=c(AIC(fit.gamma), AIC(fit.EXP), AIC(fit.LOGNO),AIC(fit.WEI), AIC(fit.IG)),
+ BIC=c(fit.gamma$sbc, fit.EXP$sbc, fit.LOGNO$sbc, fit.WEI$sbc, fit.IG$sbc))
+
+```
+
+```{r}
+library(lmtest)
+lrtest(fit.LOGNO,fit.EXP)
+```
+
+```{r}
+par(mfrow=c(1,3))
+fit.GA.TopSpeed_KmH <- gamlssMXfits(n = 5, vehicle$TopSpeed_KmH~1, family = GA, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.EXP.TopSpeed_KmH <- gamlssMXfits(n = 5, vehicle$TopSpeed_KmH~1, family = EXP, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.LOGNO.TopSpeed_KmH <- gamlssMXfits(n = 5, vehicle$TopSpeed_KmH~1, family = LOGNO, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.WEI.TopSpeed_KmH <- gamlssMXfits(n = 5, vehicle$TopSpeed_KmH~1, family = WEI, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.IG.TopSpeed_KmH <- gamlssMXfits(n = 5, vehicle$TopSpeed_KmH~1, family = IG, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+```
+
+```{r}
+data.frame(row.names=c("Gamma", "Exponentional", "Log-Normal", "Weibull","Inverse Gaussian","M.Gamma", "M.Exponentional", "M.Log-Normal", "M.Weibull","M.Inverse Gaussian" ),
+
+ DF=c(fit.gamma$df.fit, fit.EXP$df.fit, fit.LOGNO$df.fit, fit.WEI$df.fit, fit.IG$df.fit, fit.GA.TopSpeed_KmH$df.fit, fit.EXP.TopSpeed_KmH$df.fit, fit.LOGNO.TopSpeed_KmH$df.fit, fit.WEI.TopSpeed_KmH$df.fit, fit.IG.TopSpeed_KmH$df.fit),
+ 
+ LOGLIK=c(logLik(fit.gamma),logLik(fit.EXP),logLik(fit.LOGNO),logLik(fit.WEI),logLik(fit.IG),logLik(fit.GA.TopSpeed_KmH),logLik(fit.EXP.TopSpeed_KmH),logLik(fit.LOGNO.TopSpeed_KmH),logLik(fit.WEI.TopSpeed_KmH),logLik(fit.IG.TopSpeed_KmH)),
+ 
+ AIC=c(AIC(fit.gamma), AIC(fit.EXP), AIC(fit.LOGNO),AIC(fit.WEI), AIC(fit.IG),AIC(fit.GA.TopSpeed_KmH), AIC(fit.EXP.TopSpeed_KmH), AIC(fit.LOGNO.TopSpeed_KmH),AIC(fit.WEI.TopSpeed_KmH), AIC(fit.IG.TopSpeed_KmH)),
+ 
+ BIC=c(fit.gamma$sbc, fit.EXP$sbc, fit.LOGNO$sbc, fit.WEI$sbc, fit.IG$sbc,fit.GA.TopSpeed_KmH$sbc, fit.EXP.TopSpeed_KmH$sbc, fit.LOGNO.TopSpeed_KmH$sbc, fit.WEI.TopSpeed_KmH$sbc, fit.IG.TopSpeed_KmH$sbc))
+```
+
+```{r}
+summary(vehicle$Range_Km)
+```
+
+```{r}
+sd(vehicle$Range_Km)
+```
+
+```{r}
+var(vehicle$Range_Km)
+```
+
+```{r}
+(quantile(vehicle$Range_Km,0.75)) - (quantile(vehicle$Range_Km,0.25))
+```
+
+```{r}
+boxplot(vehicle$Range_Km, main = "Boxplot of Range_Km Variable")
+points(mean(vehicle$Range_Km))
+```
+
+```{r}
+hist(vehicle$Range_Km, freq=FALSE, main = "Histogram of Range_Km", xlab = "
+Range_Km")
+lines(density(vehicle$Range_Km), col="red")
+```
+
+```{r}
+skewness(vehicle$Range_Km)
+```
+
+```{r}
+kurtosis(vehicle$Range_Km)
+```
+
+```{r}
+par(mfrow=c(1,2))
+fit.gamma <- histDist(vehicle$Range_Km, family=GA, nbins=30, main="Gamma distribution")
+fit.EXP <- histDist(vehicle$Range_Km, family=EXP, nbins=30, main="Exponential distribution")
+fit.LOGNO <- histDist(vehicle$Range_Km, family=LOGNO, nbins=30, main="Log-Normal distribution")
+fit.WEI <- histDist(vehicle$Range_Km, family=WEI, nbins=30, main="Weibull distribution")
+fit.IG <- histDist(vehicle$Range_Km, family=IG, nbins=30, main="Inverse Gaussian distribution")
+```
+
+```{r}
+data.frame(row.names=c("Gamma", "Exponentional", "Log-Normal", "Weibull","Inverse Gaussian"),
+ DF=c(fit.gamma$df.fit, fit.EXP$df.fit, fit.LOGNO$df.fit, fit.WEI$df.fit, fit.IG$df.fit),           
+ LOGLIK=c(logLik(fit.gamma),logLik(fit.EXP),logLik(fit.LOGNO),logLik(fit.WEI),logLik(fit.IG)),
+ AIC=c(AIC(fit.gamma), AIC(fit.EXP), AIC(fit.LOGNO),AIC(fit.WEI), AIC(fit.IG)),
+ BIC=c(fit.gamma$sbc, fit.EXP$sbc, fit.LOGNO$sbc, fit.WEI$sbc, fit.IG$sbc))
+
+```
+
+```{r}
+lrtest(fit.LOGNO,fit.EXP)
+```
+
+```{r}
+par(mfrow=c(1,3))
+fit.GA.Range_Km <- gamlssMXfits(n = 5, vehicle$Range_Km~1, family = GA, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.EXP.Range_Km <- gamlssMXfits(n = 5, vehicle$Range_Km~1, family = EXP, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.LOGNO.Range_Km <- gamlssMXfits(n = 5, vehicle$Range_Km~1, family = LOGNO, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.WEI.Range_Km <- gamlssMXfits(n = 5, vehicle$Range_Km~1, family = WEI, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.IG.Range_Km <- gamlssMXfits(n = 5, vehicle$Range_Km~1, family = IG, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+```
+
+```{r}
+data.frame(row.names=c("Gamma", "Exponentional", "Log-Normal", "Weibull","Inverse Gaussian","M.Gamma", "M.Exponentional", "M.Log-Normal", "M.Weibull","M.Inverse Gaussian" ),
+ DF=c(fit.gamma$df.fit, fit.EXP$df.fit, fit.LOGNO$df.fit, fit.WEI$df.fit, fit.IG$df.fit, fit.GA.Range_Km$df.fit, fit.EXP.Range_Km$df.fit, fit.LOGNO.Range_Km$df.fit, fit.WEI.Range_Km$df.fit, fit.IG.Range_Km$df.fit),
+ LOGLIK=c(logLik(fit.gamma),logLik(fit.EXP),logLik(fit.LOGNO),logLik(fit.WEI),logLik(fit.IG),logLik(fit.GA.Range_Km),logLik(fit.EXP.Range_Km),logLik(fit.LOGNO.Range_Km),logLik(fit.WEI.Range_Km),logLik(fit.IG.Range_Km)),
+ AIC=c(AIC(fit.gamma), AIC(fit.EXP), AIC(fit.LOGNO),AIC(fit.WEI), AIC(fit.IG),AIC(fit.GA.Range_Km), AIC(fit.EXP.Range_Km), AIC(fit.LOGNO.Range_Km),AIC(fit.WEI.Range_Km), AIC(fit.IG.Range_Km)),
+ BIC=c(fit.gamma$sbc, fit.EXP$sbc, fit.LOGNO$sbc, fit.WEI$sbc, fit.IG$sbc,fit.GA.Range_Km$sbc, fit.EXP.Range_Km$sbc, fit.LOGNO.Range_Km$sbc, fit.WEI.Range_Km$sbc, fit.IG.Range_Km$sbc))
+```
+
+```{r}
+summary(vehicle$Efficiency_WhKm)
+```
+
+```{r}
+sd(vehicle$Efficiency_WhKm)
+```
+
+```{r}
+var(vehicle$Efficiency_WhKm)
+```
+
+```{r}
+(quantile(vehicle$Efficiency_WhKm,0.75)) - (quantile(vehicle$Efficiency_WhKm,0.25))
+```
+
+```{r}
+boxplot(vehicle$Efficiency_WhKm, main = "Boxplot of Efficiency_WhKm Variable")
+points(mean(vehicle$Efficiency_WhKm))
+```
+
+```{r}
+hist(vehicle$Efficiency_WhKm, freq=FALSE, main = "Histogram of Efficiency_WhKm", xlab = "Efficiency_WhKm")
+lines(density(vehicle$Efficiency_WhKm), col="red")
+```
+
+```{r}
+skewness(vehicle$Efficiency_WhKm)
+```
+
+```{r}
+kurtosis(vehicle$Efficiency_WhKm)
+```
+
+```{r}
+par(mfrow=c(1,2))
+fit.gamma <- histDist(vehicle$Efficiency_WhKm, family=GA, nbins=30, main="Gamma distribution")
+fit.EXP <- histDist(vehicle$Efficiency_WhKm, family=EXP, nbins=30, main="Exponential distribution")
+fit.LOGNO <- histDist(vehicle$Efficiency_WhKm, family=LOGNO, nbins=30, main="Log-Normal distribution")
+fit.WEI <- histDist(vehicle$Efficiency_WhKm, family=WEI, nbins=30, main="Weibull distribution")
+fit.IG <- histDist(vehicle$Efficiency_WhKm, family=IG, nbins=30, main="Inverse Gaussian distribution")
+```
+
+```{r}
+data.frame(row.names=c("Gamma", "Exponentional", "Log-Normal", "Weibull","Inverse Gaussian"),
+ DF=c(fit.gamma$df.fit, fit.EXP$df.fit, fit.LOGNO$df.fit, fit.WEI$df.fit, fit.IG$df.fit),           
+ LOGLIK=c(logLik(fit.gamma),logLik(fit.EXP),logLik(fit.LOGNO),logLik(fit.WEI),logLik(fit.IG)),
+ AIC=c(AIC(fit.gamma), AIC(fit.EXP), AIC(fit.LOGNO),AIC(fit.WEI), AIC(fit.IG)),
+ BIC=c(fit.gamma$sbc, fit.EXP$sbc, fit.LOGNO$sbc, fit.WEI$sbc, fit.IG$sbc))
+```
+
+```{r}
+lrtest(fit.LOGNO,fit.EXP)
+```
+
+```{r}
+par(mfrow=c(1,3))
+fit.GA.Efficiency_WhKm <- gamlssMXfits(n = 5, vehicle$Efficiency_WhKm~1, family = GA, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.EXP.Efficiency_WhKm <- gamlssMXfits(n = 5, vehicle$Efficiency_WhKm~1, family = EXP, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.LOGNO.Efficiency_WhKm <- gamlssMXfits(n = 5, vehicle$Efficiency_WhKm~1, family = LOGNO, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.WEI.Efficiency_WhKm <- gamlssMXfits(n = 5, vehicle$Efficiency_WhKm~1, family = WEI, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.IG.Efficiency_WhKm <- gamlssMXfits(n = 5, vehicle$Efficiency_WhKm~1, family = IG, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+```
+
+```{r}
+data.frame(row.names=c("Gamma", "Exponentional", "Log-Normal", "Weibull","Inverse Gaussian","M.Gamma", "M.Exponentional", "M.Log-Normal", "M.Weibull","M.Inverse Gaussian" ),
+ DF=c(fit.gamma$df.fit, fit.EXP$df.fit, fit.LOGNO$df.fit, fit.WEI$df.fit, fit.IG$df.fit, fit.GA.Efficiency_WhKm$df.fit, fit.EXP.Efficiency_WhKm$df.fit, fit.LOGNO.Efficiency_WhKm$df.fit, fit.WEI.Efficiency_WhKm$df.fit, fit.IG.Efficiency_WhKm$df.fit),
+ LOGLIK=c(logLik(fit.gamma),logLik(fit.EXP),logLik(fit.LOGNO),logLik(fit.WEI),logLik(fit.IG),logLik(fit.GA.Efficiency_WhKm),logLik(fit.EXP.Efficiency_WhKm),logLik(fit.LOGNO.Efficiency_WhKm),logLik(fit.WEI.Efficiency_WhKm),logLik(fit.IG.Efficiency_WhKm)),
+ AIC=c(AIC(fit.gamma), AIC(fit.EXP), AIC(fit.LOGNO),AIC(fit.WEI), AIC(fit.IG),AIC(fit.GA.Efficiency_WhKm), AIC(fit.EXP.Efficiency_WhKm), AIC(fit.LOGNO.Efficiency_WhKm),AIC(fit.WEI.Efficiency_WhKm), AIC(fit.IG.Efficiency_WhKm)),
+ BIC=c(fit.gamma$sbc, fit.EXP$sbc, fit.LOGNO$sbc, fit.WEI$sbc, fit.IG$sbc,fit.GA.Efficiency_WhKm$sbc, fit.EXP.Efficiency_WhKm$sbc, fit.LOGNO.Efficiency_WhKm$sbc, fit.WEI.Efficiency_WhKm$sbc, fit.IG.Efficiency_WhKm$sbc))
+```
+
+```{r}
+summary(vehicle$FastCharge_KmH)
+```
+
+```{r}
+sd(vehicle$FastCharge_KmH)
+```
+
+```{r}
+var(vehicle$FastCharge_KmH)
+```
+
+```{r}
+(quantile(vehicle$FastCharge_KmH,0.75) - quantile(vehicle$FastCharge_KmH,0.25))
+```
+
+```{r}
+boxplot(vehicle$FastCharge_KmH, main = "Boxplot of FastCharge_KmH variable")
+points(mean(vehicle$FastCharge_KmH))
+```
+
+```{r}
+hist(vehicle$FastCharge_KmH, freq = FALSE, main = "Histogram of FastCharge_KmH", xlab = "FastCharge_KmH")
+lines(density(vehicle$FastCharge_KmH),col="red")
+```
+
+```{r}
+skewness(vehicle$FastCharge_KmH)
+```
+
+```{r}
+kurtosis(vehicle$FastCharge_KmH)
+```
+
+```{r}
+par(mfrow=c(1,2))
+fit.gamma <- histDist(vehicle$FastCharge_KmH, family=GA, nbins=30, main="Gamma distribution")
+fit.EXP <- histDist(vehicle$FastCharge_KmH, family=EXP, nbins=30, main="Exponential distribution")
+fit.LOGNO <- histDist(vehicle$FastCharge_KmH, family=LOGNO, nbins=30, main="Log-Normal distribution")
+fit.WEI <- histDist(vehicle$FastCharge_KmH, family=WEI, nbins=30, main="Weibull distribution")
+fit.IG <- histDist(vehicle$FastCharge_KmH, family=IG, nbins=30, main="Inverse Gaussian distribution")
+```
+
+```{r}
+data.frame(row.names=c("Gamma", "Exponentional", "Log-Normal", "Weibull","Inverse Gaussian"),
+ DF=c(fit.gamma$df.fit, fit.EXP$df.fit, fit.LOGNO$df.fit, fit.WEI$df.fit, fit.IG$df.fit),           
+ LOGLIK=c(logLik(fit.gamma),logLik(fit.EXP),logLik(fit.LOGNO),logLik(fit.WEI),logLik(fit.IG)),
+ AIC=c(AIC(fit.gamma), AIC(fit.EXP), AIC(fit.LOGNO),AIC(fit.WEI), AIC(fit.IG)),
+ BIC=c(fit.gamma$sbc, fit.EXP$sbc, fit.LOGNO$sbc, fit.WEI$sbc, fit.IG$sbc))
+```
+
+```{r}
+lrtest(fit.gamma,fit.EXP)
+```
+
+```{r}
+par(mfrow=c(1,3))
+fit.GA.FastCharge_KmH <- gamlssMXfits(n = 5, vehicle$FastCharge_KmH~1, family = GA, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.EXP.FastCharge_KmH <- gamlssMXfits(n = 5, vehicle$FastCharge_KmH~1, family = EXP, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.LOGNO.FastCharge_KmH <- gamlssMXfits(n = 5, vehicle$FastCharge_KmH~1, family = LOGNO, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.WEI.FastCharge_KmH <- gamlssMXfits(n = 5, vehicle$FastCharge_KmH~1, family = WEI, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.IG.FastCharge_KmH <- gamlssMXfits(n = 5, vehicle$FastCharge_KmH~1, family = IG, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+```
+
+```{r}
+data.frame(row.names=c("Gamma", "Exponentional", "Log-Normal", "Weibull","Inverse Gaussian","M.Gamma", "M.Exponentional", "M.Log-Normal", "M.Weibull","M.Inverse Gaussian" ),
+ DF=c(fit.gamma$df.fit, fit.EXP$df.fit, fit.LOGNO$df.fit, fit.WEI$df.fit, fit.IG$df.fit, fit.GA.FastCharge_KmH$df.fit, fit.EXP.FastCharge_KmH$df.fit, fit.LOGNO.FastCharge_KmH$df.fit, fit.WEI.FastCharge_KmH$df.fit, fit.IG.FastCharge_KmH$df.fit),
+ LOGLIK=c(logLik(fit.gamma),logLik(fit.EXP),logLik(fit.LOGNO),logLik(fit.WEI),logLik(fit.IG),logLik(fit.GA.FastCharge_KmH),logLik(fit.EXP.FastCharge_KmH),logLik(fit.LOGNO.FastCharge_KmH),logLik(fit.WEI.FastCharge_KmH),logLik(fit.IG.FastCharge_KmH)),
+ AIC=c(AIC(fit.gamma), AIC(fit.EXP), AIC(fit.LOGNO),AIC(fit.WEI), AIC(fit.IG),AIC(fit.GA.FastCharge_KmH), AIC(fit.EXP.FastCharge_KmH), AIC(fit.LOGNO.FastCharge_KmH),AIC(fit.WEI.FastCharge_KmH), AIC(fit.IG.FastCharge_KmH)),
+ BIC=c(fit.gamma$sbc, fit.EXP$sbc, fit.LOGNO$sbc, fit.WEI$sbc, fit.IG$sbc,fit.GA.FastCharge_KmH$sbc, fit.EXP.FastCharge_KmH$sbc, fit.LOGNO.FastCharge_KmH$sbc, fit.WEI.FastCharge_KmH$sbc, fit.IG.FastCharge_KmH$sbc))
+```
+
+```{r}
+summary(vehicle$PriceEuro)
+```
+
+```{r}
+sd(vehicle$PriceEuro)
+```
+
+```{r}
+var(vehicle$PriceEuro)
+```
+
+```{r}
+(quantile(vehicle$PriceEuro,0.75) - quantile(vehicle$PriceEuro,0.25))
+```
+
+```{r}
+boxplot(vehicle$PriceEuro, main = "Boxplot of PriceEuro variable")
+points(mean(vehicle$PriceEuro))
+```
+
+```{r}
+hist(vehicle$PriceEuro, freq = FALSE, main = "Histogram of PriceEuro", xlab = "PriceEuro")
+lines(density(vehicle$PriceEuro),col="red")
+```
+
+```{r}
+skewness(vehicle$PriceEuro)
+```
+
+```{r}
+kurtosis(vehicle$PriceEuro)
+```
+
+```{r}
+par(mfrow=c(1,2))
+fit.gamma <- histDist(vehicle$PriceEuro, family=GA, nbins=30, main="Gamma distribution")
+fit.EXP <- histDist(vehicle$PriceEuro, family=EXP, nbins=30, main="Exponential distribution")
+fit.LOGNO <- histDist(vehicle$PriceEuro, family=LOGNO, nbins=30, main="Log-Normal distribution")
+fit.WEI <- histDist(vehicle$PriceEuro, family=WEI, nbins=30, main="Weibull distribution")
+fit.IG <- histDist(vehicle$PriceEuro, family=IG, nbins=30, main="Inverse Gaussian distribution")
+```
+
+```{r}
+data.frame(row.names=c("Gamma", "Exponentional", "Log-Normal", "Weibull","Inverse Gaussian"),
+ DF=c(fit.gamma$df.fit, fit.EXP$df.fit, fit.LOGNO$df.fit, fit.WEI$df.fit, fit.IG$df.fit),           
+ LOGLIK=c(logLik(fit.gamma),logLik(fit.EXP),logLik(fit.LOGNO),logLik(fit.WEI),logLik(fit.IG)),
+ AIC=c(AIC(fit.gamma), AIC(fit.EXP), AIC(fit.LOGNO),AIC(fit.WEI), AIC(fit.IG)),
+ BIC=c(fit.gamma$sbc, fit.EXP$sbc, fit.LOGNO$sbc, fit.WEI$sbc, fit.IG$sbc))
+```
+
+```{r}
+lrtest(fit.IG,fit.EXP)
+```
+
+```{r}
+par(mfrow=c(1,3))
+fit.GA.PriceEuro <- gamlssMXfits(n = 5, vehicle$PriceEuro~1, family = GA, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.EXP.PriceEuro <- gamlssMXfits(n = 5, vehicle$PriceEuro~1, family = EXP, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.LOGNO.PriceEuro <- gamlssMXfits(n = 5, vehicle$PriceEuro~1, family = LOGNO, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.WEI.PriceEuro <- gamlssMXfits(n = 5, vehicle$PriceEuro~1, family = WEI, K = 2, data = vehicle)
+par(mfrow=c(1,3))
+fit.IG.PriceEuro <- gamlssMXfits(n = 5, vehicle$PriceEuro~1, family = IG, K = 2, data = vehicle)
+```
+
+```{r}
+data.frame(row.names=c("Gamma", "Exponentional", "Log-Normal", "Weibull","Inverse Gaussian","M.Gamma", "M.Exponentional", "M.Log-Normal", "M.Weibull","M.Inverse Gaussian" ),
+ DF=c(fit.gamma$df.fit, fit.EXP$df.fit, fit.LOGNO$df.fit, fit.WEI$df.fit, fit.IG$df.fit, fit.GA.PriceEuro$df.fit, fit.EXP.PriceEuro$df.fit, fit.LOGNO.PriceEuro$df.fit, fit.WEI.PriceEuro$df.fit, fit.IG.PriceEuro$df.fit),
+ LOGLIK=c(logLik(fit.gamma),logLik(fit.EXP),logLik(fit.LOGNO),logLik(fit.WEI),logLik(fit.IG),logLik(fit.GA.PriceEuro),logLik(fit.EXP.PriceEuro),logLik(fit.LOGNO.PriceEuro),logLik(fit.WEI.PriceEuro),logLik(fit.IG.PriceEuro)),
+ AIC=c(AIC(fit.gamma), AIC(fit.EXP), AIC(fit.LOGNO),AIC(fit.WEI), AIC(fit.IG),AIC(fit.GA.PriceEuro), AIC(fit.EXP.PriceEuro), AIC(fit.LOGNO.PriceEuro),AIC(fit.WEI.PriceEuro), AIC(fit.IG.PriceEuro)),
+ BIC=c(fit.gamma$sbc, fit.EXP$sbc, fit.LOGNO$sbc, fit.WEI$sbc, fit.IG$sbc,fit.GA.PriceEuro$sbc, fit.EXP.PriceEuro$sbc, fit.LOGNO.PriceEuro$sbc, fit.WEI.PriceEuro$sbc, fit.IG.PriceEuro$sbc))
+```
+
+```{r}
+library(psych)
+vehicle_pca <- vehicle[,3:8]
+plot <- pairs.panels(vehicle_pca, hist.col="green", density = TRUE, ellipses = FALSE)
+```
+
+```{r}
+apply(vehicle_pca, 2, mean)
+```
+
+```{r}
+apply(vehicle_pca, 2, var)
+```
+
+```{r}
+scaled_vehicle_pca<-apply(vehicle_pca, 2, scale)
+head(scaled_vehicle_pca)
+```
+
+```{r}
+vehicle_cov <- cov(scaled_vehicle_pca)
+vehicle_eigen <- eigen(vehicle_cov)
+vehicle_eigen$value
+```
+
+```{r}
+phi <- vehicle_eigen$vectors[,1:3]
+phi <- -phi
+row.names(phi) <- c("AccelSec","TopSpeed_KmH","Range_Km","Efficiency_WhKm","FastCharge_KmH","PriceEuro")
+colnames(phi) <- c("PC1","PC2","PC3")
+
+phi
+```
+
+```{r}
+PC1 <- scaled_vehicle_pca %*% phi[,1]
+PC2 <- scaled_vehicle_pca %*% phi[,2]
+PC <- data.frame(ID = vehicle$Brand, PC1, PC2)
+head(PC)
+```
+
+```{r}
+library(ggplot2)
+#install.packages("modelr")
+library(modelr)
+
+```
+
+```{r}
+ggplot(PC, aes(PC1, PC2)) +
+modelr::geom_ref_line(h = 0) +
+modelr::geom_ref_line(v = 0) +
+geom_text(aes(label = ID), size = 3) +
+xlab("First Principal Component") +
+ylab("Second Principal Component") +
+ggtitle("Scores-1PC and 2PC")
+```
+
+```{r}
+vehicle_pca_biplot <- prcomp(vehicle_pca, scale. = TRUE)
+biplot(vehicle_pca_biplot, scale=0)
+abline(h=0)
+abline(v=0)
+```
+
+```{r}
+cor(vehicle_pca)
+```
+
+```{r}
+vehicle_eigen$values
+vehicle_eigen$values[vehicle_eigen$values > 1]
+```
+
+```{r}
+(PVE <- vehicle_eigen$values/sum(vehicle_eigen$values))
+PVE <- round(PVE,3)
+```
+
+```{r}
+cumsum(PVE)
+```
+
+```{r}
+plot(PVE, xlab="Principal Component", ylab="Proportion of Variance Explained",
+main="Scree Plot", ylim=c(0,1), type='b')
+
+
+
+```
+
+```{r}
+plot(cumsum(PVE), xlab="Principal Component", main="Cumulative Scree Plot",
+ylab="Cumulative Proportion of Variance Explained", ylim=c(0,1),type='b')
+```
+
+```{r}
+pr.out = prcomp(vehicle[,3:8], scale=TRUE)
+pr.out$rotation[,1:4]
+```
+
+```{r}
+biplot(pr.out, scale=0)
+```
+
+```{r}
+library(psych)
+install.packages("mclust")
+library(mclust)
+vehicle_cluster<-vehicle[,3:8]
+pairs.panels(vehicle_cluster, main= "Original space - Bivariate scatter plots",ellipses = FALSE)
+```
+
+```{r}
+vehicle_cluster_scaled <- scale(vehicle_cluster)
+```
+
+```{r}
+install.packages("clustertend")
+library(clustertend)
+
+```
+
+```{r}
+hopkins(vehicle_cluster_scaled,n=nrow(vehicle_cluster_scaled)-1)
+```
+
+```{r}
+install.packages("factoextra")
+library(factoextra)
+```
+
+```{r}
+fviz_dist(dist(vehicle_cluster_scaled), show_labels = FALSE) + labs(title="Electric Vehicle\nOrdered Dissimilarity Matrix",gradient = list(low = "red", mid = "white", high ="blue"))
+```
+
+```{r}
+dist.eucl <- dist(vehicle_cluster_scaled, method = "euclidean")
+eucl <- round(as.matrix(dist.eucl)[1:6, 1:6], 2)
+rownames(eucl) <- c("AccelSec","TopSpeed_KmH","Range_Km","Efficiency_WhKm","FastCharge_KmH","PriceEuro")
+colnames(eucl) <- c("AccelSec","TopSpeed_KmH","Range_Km","Efficiency_WhKm","FastCharge_KmH","PriceEuro")
+eucl
+
+```
+
+```{r}
+dist.man <- dist(vehicle_cluster_scaled, method = "manhattan")
+man <- round(as.matrix(dist.man)[1:6, 1:6], 2)
+rownames(man) <- c("AccelSec","TopSpeed_KmH","Range_Km","Efficiency_WhKm","FastCharge_KmH","PriceEuro")
+colnames(man) <- c("AccelSec","TopSpeed_KmH","Range_Km","Efficiency_WhKm","FastCharge_KmH","PriceEuro")
+man
+```
+
+```{r}
+fviz_dist(dist.eucl)
+```
+
+```{r}
+fviz_dist(dist.man)
+```
+
+```{r}
+res.hc <- hclust(d = dist.eucl, method = "ward.D2")
+fviz_dend(res.hc, cex = 0.5,subtitle = "A.H.C based on Euclidean distance and Ward’s linkage method")
+```
+
+```{r}
+res.coph <- cophenetic(res.hc)
+cor(dist.eucl, res.coph)
+```
+
+```{r}
+grp <- cutree(res.hc, k = 3)
+fviz_dend(res.hc, k = 3, cex = 0.5, k_colors = c("#00AFBB", "#E7B800", "#FC4E07"), color_labels_by_k = TRUE, rect = TRUE)
+```
+
+```{r}
+table(grp)
+```
+
+```{r}
+pairs(vehicle_cluster_scaled, gap=0, pch=grp, col=c("#00AFBB", "#E7B800", "#FC4E07")[grp])
+```
+
+```{r}
+res.hc2 <- hclust(d = dist.eucl, method = "average")
+fviz_dend(res.hc2, cex = 0.5,subtitle = "A.H.C based on Euclidean distance and average linkage method")
+```
+
+```{r}
+res.coph2 <- cophenetic(res.hc2)
+cor(dist.eucl, res.coph2)
+```
+
+```{r}
+grp <- cutree(res.hc2, k = 3)
+fviz_dend(res.hc2, k = 3, cex = 0.5, k_colors = c("#00AFBB", "#E7B800", "#FC4E07"), color_labels_by_k = TRUE, rect = TRUE)
+```
+
+```{r}
+table(grp)
+```
+
+```{r}
+pairs(vehicle_cluster_scaled, gap=0, pch=grp, col=c("#00AFBB", "#E7B800", "#FC4E07")[grp])
+```
+
+```{r}
+res.hc3 <- hclust(d = dist.eucl, method = "single")
+fviz_dend(res.hc3, cex = 0.5,subtitle = "A.H.C based on Euclidean distance and single linkage method")
+```
+
+```{r}
+res.coph3 <- cophenetic(res.hc3)
+cor(dist.eucl, res.coph3)
+```
+
+```{r}
+grp <- cutree(res.hc3, k = 3)
+fviz_dend(res.hc3, k = 3, cex = 0.5, k_colors = c("#00AFBB", "#E7B800", "#FC4E07"), color_labels_by_k = TRUE, rect = TRUE)
+```
+
+```{r}
+table(grp)
+```
+
+```{r}
+pairs(vehicle_cluster_scaled, gap=0, pch=grp, col=c("#00AFBB", "#E7B800", "#FC4E07")[grp])
+```
+
+```{r}
+res.hc4 <- hclust(d = dist.man, method = "ward.D2")
+fviz_dend(res.hc4, cex = 0.5,subtitle = "A.H.C based on manhattan distance and ward's linkage method")
+```
+
+```{r}
+res.coph4 <- cophenetic(res.hc4)
+cor(dist.man, res.coph4)
+```
+
+```{r}
+grp <- cutree(res.hc4, k = 3)
+fviz_dend(res.hc4, k = 3, cex = 0.5, k_colors = c("#00AFBB", "#E7B800", "#FC4E07"), color_labels_by_k = TRUE, rect = TRUE)
+
+```
+
+```{r}
+table(grp)
+```
+
+```{r}
+pairs(vehicle_cluster_scaled, gap=0, pch=grp, col=c("#00AFBB", "#E7B800", "#FC4E07")[grp])
+```
+
+```{r}
+res.hc5 <- hclust(d = dist.man, method = "average")
+fviz_dend(res.hc5, cex = 0.5,subtitle = "A.H.C based on manhattan distance and average linkage method",guides="none")
+```
+
+```{r}
+res.coph5 <- cophenetic(res.hc5)
+cor(dist.man, res.coph5)
+```
+
+```{r}
+grp <- cutree(res.hc5, k = 3)
+fviz_dend(res.hc5, k = 3, cex = 0.5, k_colors = c("#00AFBB", "#E7B800", "#FC4E07"), color_labels_by_k = TRUE, rect = TRUE)
+
+```
+
+```{r}
+table(grp)
+```
+
+```{r}
+pairs(vehicle_cluster_scaled, gap=0, pch=grp, col=c("#00AFBB", "#E7B800", "#FC4E07")[grp])
+```
+
+```{r}
+res.hc6 <- hclust(d = dist.man, method = "single")
+fviz_dend(res.hc6, cex = 0.5,subtitle = "A.H.C based on manhattan distance and single linkage method")
+```
+
+```{r}
+res.coph6 <- cophenetic(res.hc6)
+cor(dist.man, res.coph6)
+```
+
+```{r}
+grp <- cutree(res.hc6, k = 3)
+fviz_dend(res.hc6, k = 3, cex = 0.5, k_colors = c("#00AFBB", "#E7B800", "#FC4E07"), color_labels_by_k = TRUE, rect = TRUE)
+
+```
+
+```{r}
+table(grp)
+```
+
+```{r}
+pairs(vehicle_cluster_scaled, gap=0, pch=grp, col=c("#00AFBB", "#E7B800", "#FC4E07")[grp])
+```
+
+\-\-\-\-\-\--
+
+```{r}
+km.res <- kmeans(vehicle_cluster_scaled, 2, nstart = 25)
+km.res$size
+?kmeans()
+```
+
+```{r}
+cl <- km.res$cluster
+pairs(vehicle_cluster_scaled, gap=0, pch=cl, col=c("#2E9FDF", "#FC4E07")[cl])
+```
+
+```{r}
+km.res2 <- kmeans(vehicle_cluster_scaled, 4, nstart = 25)
+km.res2$size
+```
+
+```{r}
+fviz_cluster(km.res2, data = vehicle_cluster_scaled,palette = c("#2E9FDF", "#FC4E07", "#CF3E4B", "#287233"),ellipse.type = "euclid", star.plot = TRUE,repel = TRUE, ggtheme = theme_minimal() )
+```
+
+```{r}
+cl2 <- km.res2$cluster
+pairs(vehicle_cluster_scaled, gap=0, pch=cl, col=c("#2E9FDF", "#FC4E07","#CF3E4B", "#287233")[cl2])
+```
+
+```{r}
+#install.packages("cluster")
+library(cluster)
+pam.res <- pam(vehicle_cluster_scaled, 2)
+pam.res$medoids
+```
+
+```{r}
+cl3 <- pam.res$cluster
+pairs(vehicle_cluster_scaled, gap=0, pch=cl3, col= c("#00AFBB", "#FC4E07")[cl3] )
+```
+
+\-\-- validation
+
+```{r}
+#install.packages("hopkins")
+#library(clustertend)
+library(hopkins)
+n = nrow(vehicle_cluster_scaled)-1
+hopkins(vehicle_cluster_scaled, n)
+```
+
+```{r}
+random_df = apply(vehicle_cluster_scaled, 2, function(x){runif(length(x), min(x),(max(x)))})
+random_df=as.data.frame(random_df)
+scaled.random_df=scale(random_df)
+pairs(scaled.random_df, gap = 0, pch = 21)
+
+library(clustertend)
+set.seed(123)
+n=nrow(vehicle_cluster_scaled)-1
+hopkins(vehicle_cluster_scaled, n)
+n=nrow(scaled.random_df)-1
+hopkins(scaled.random_df, n)
+```
+
+```{r}
+fviz_dist(dist(vehicle_cluster_scaled), show_labels = FALSE)+ labs(title = "EV data")
+```
+
+```{r}
+fviz_dist(dist(scaled.random_df), show_labels = FALSE)+ labs(title = "scaled.random_df EV data")
+```
+
+```{r}
+fviz_nbclust(vehicle_cluster_scaled, kmeans, method = "wss") + geom_vline(xintercept = 4, linetype = 2)+labs(subtitle = "Elbow method")
+```
+
+```{r}
+fviz_nbclust(vehicle_cluster_scaled, kmeans, method = "silhouette") + labs(subtitle = "Silhouette method")
+```
+
+```{r}
+set.seed(123)
+fviz_nbclust(vehicle_cluster_scaled, kmeans, nstart = 25, method = "gap_stat", nboot = 500)+labs(subtitle = "Gap statistic method")
+```
+
+```{r}
+install.packages("NbClust")
+library(NbClust)
+install.packages("factoextra")
+library(factoextra)
+nb <- NbClust(vehicle_cluster_scaled[3:8], distance = "euclidean", min.nc = 2,max.nc = 10, method = "kmeans")
+```
+
+```{r}
+class(nb$Best.nc)
+fviz_nbclust(nb)
+```
+
+```{r}
+km.res <- eclust(vehicle_cluster_scaled, "kmeans", k = 2, nstart = 25, graph = FALSE)
+fviz_silhouette(km.res, palette = "jco", ggtheme = theme_classic())
+```
+
+```{r}
+silinfo$avg.width
+```
+
+```{r}
+sil <- km.res$silinfo$widths[, 1:3]
+neg_sil_index_aver.eu<- which(sil[, "sil_width"] < 0)
+sil[neg_sil_index_aver.eu, , drop = FALSE]
+```
+
+```{r}
+km.res <- eclust(vehicle_cluster_scaled, "kmeans", k = 2, nstart = 25, graph = FALSE)
+fviz_silhouette(km.res, palette = "jco", ggtheme = theme_classic())
+```
+
+```{r}
+install.packages("fpc")
+library(fpc)
+```
+
+```{r}
+km_stats <- cluster.stats(dist(vehicle_cluster_scaled), km.res$cluster)
+km_stats$dunn
+```
+
+```{r}
+install.packages("clValid")
+library("clValid")
+```
+
+```{r}
+clmethods <- c("hierarchical","kmeans","pam")
+intern <- clValid(vehicle_cluster_scaled, nClust = 2:6, clMethods = clmethods, validation = "internal")
+summary(intern)
+```
+
+```{r}
+clmethods <- c("hierarchical","kmeans","pam")
+stab <- clValid(vehicle_cluster_scaled, nClust = 2:6, clMethods = clmethods,validation = "stability")
+optimalScores(stab)
+```
+
+```{r}
+install.packages("mclust")
+library(mclust)
+mod <- Mclust(vehicle_cluster_scaled, G = 1:9, modelNames = NULL)
+summary(mod$BIC)
+```
+
+```{r}
+plot(mod, what = "BIC", ylim = range(mod$BIC, na.rm = TRUE), legendArgs = list(x = "bottomleft"))
+plot(mod, what = "BIC", ylim = range(mod$BIC, na.rm = TRUE), legendArgs = list(x = "bottomright"))
+```
+
+```{r}
+summary(mod)
+```
+
+```{r}
+head(round(mod$z, 6), 30)
+```
+
+```{r}
+head(mod$classification, 30)
+```
+
+```{r}
+pairs(vehicle_cluster_scaled, gap=0, pch = 16, col = mod$classification)
+```
+
+```{r}
+table(mod$classification)
+```
+
+```{r}
+adjustedRandIndex(mod$classification)
+```
